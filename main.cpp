@@ -4,15 +4,17 @@
 #include <algorithm>
 
 void code();
+void decode();
 int openFile(std::string name, std::string& data);
 std::string vigenereCode(std::string message, std::string key);
+std::string vigenereDecode(std::string message, std::string key);
 
 
 int main()
 {
     unsigned int choice = 1;
 
-    while(choice > 0 && choice < 2) {
+    while(choice > 0 && choice <= 2) {
         std::cout << "Que voulez vous faire ?" << std::endl
                   << "1) Coder un message" << std::endl
                   << "2) Decoder un message" << std::endl
@@ -28,7 +30,7 @@ int main()
                 code();
                 break;
             case 2:
-                //decode();
+                decode();
                 break;
         }
 
@@ -76,7 +78,22 @@ void code() {
     std::cout << "Result : " << result;
 }
 
-void decode()
+void decode() {
+    std::string message;
+    std::string key;
+
+    std::cout << "Votre message > ";
+    getline(std::cin, message);
+
+    std::cout << "Votre clé > ";
+    getline(std::cin, key);
+
+    if(key.size() == 0)     { std::cout << "Clé de longueur 0, abandon"; return; }
+
+    std::string result = vigenereDecode(message, key);
+
+    std::cout << "Result : " << result;
+}
 
 std::string vigenereCode(std::string message, std::string key) {
     unsigned int counterKey = 0, sizeOfKey = key.size();
@@ -90,7 +107,18 @@ std::string vigenereCode(std::string message, std::string key) {
     return codedString;
 }
 
-
+std::string vigenereDecode(std::string message, std::string key) {
+    unsigned int counterKey = 0, sizeOfKey = key.size();
+    char decodedChar;
+    std::string decodedString;
+    for(unsigned int i = 0; i < message.size(); i++) {
+        decodedChar = (message[i] - key[counterKey]);
+        if(decodedChar < 0)   { decodedChar = 256+decodedChar; }
+        decodedString += decodedChar;
+        ++counterKey%=sizeOfKey;
+    }
+    return decodedString;
+}
 
 ///**** OpenFile ****///
 /** Store the content of a file in a string **/
