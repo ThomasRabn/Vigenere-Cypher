@@ -8,8 +8,9 @@ void decode();
 int openFile(std::string name, std::string& data);
 std::string vigenereCode(std::string message, std::string key);
 std::string vigenereDecode(std::string message, std::string key);
+int writeToResultTxt(std::string& str);
 
-bool alphabetOnly = false;
+bool alphabetOnly = true;
 
 int main()
 {
@@ -17,13 +18,12 @@ int main()
     std::string actualMode;
 
     while(choice > 0 && choice <= 3) {
-        if(alphabetOnly)    { actualMode = "Alphabet Only"; }
-        else                { actualMode = "ASCII"; }
-        std::cout << "Que voulez vous faire ?" << std::endl
-                  << "1) Coder un message" << std::endl
-                  << "2) Decoder un message" << std::endl
+        actualMode = (alphabetOnly) ? "Alphabet Only" : "ASCII";
+        std::cout << "What do you want to do?" << std::endl
+                  << "1) Encrypt a message" << std::endl
+                  << "2) Decrypt a message" << std::endl
                   << "3) Toggle cypher mode (alphabet only or ascii). Actual mode: " + actualMode << std::endl
-                  << "Autre) Quitter" << std::endl
+                  << "Other) Quit" << std::endl
                   << "> ";
 
         std::cin >> choice;
@@ -50,9 +50,9 @@ int main()
 
 void code() {
     unsigned int choice = 0;
-    std::cout << std::endl << "Que voulez-vous faire ?" << std::endl
-                           << "1) Ecrire le message ici" << std::endl
-                           << "2) Coder un fichier texte";
+    std::cout << std::endl << "What do you want to do?" << std::endl
+                           << "1) Write the message in standard input" << std::endl
+                           << "2) Encrypt a text file";
 
     while(choice < 1 || choice > 2) {
         std::cout << std::endl << "> ";
@@ -64,22 +64,22 @@ void code() {
     std::string message;
 
     if(choice == 1) {
-        std::cout << std::endl << "Votre message > ";
+        std::cout << std::endl << "Your message > ";
         getline(std::cin, message);
     }
     else if(choice == 2) {
         std::string name;
-        std::cout << std::endl << "Veuillez entrer le nom du fichier > ";
+        std::cout << std::endl << "Please enter the name of the file > ";
         getline(std::cin, name);
-        if(openFile(name, message) == 1)    { std::cout << "Probleme, abandon"; return; }
+        if(openFile(name, message) == 1)    { std::cout << "Error, quitting"; return; }
     }
 
     std::string key;
 
-    std::cout << "Choisissez une cle > ";
+    std::cout << "Choose a key > ";
     getline(std::cin, key);
 
-    if(key.size() == 0)     { std::cout << "Clé de longueur 0, abandon"; return; }
+    if(key.size() == 0)     { std::cout << "Key's length is 0, quitting"; return; }
 
     std::string result = vigenereCode(message, key);
 
@@ -90,13 +90,13 @@ void decode() {
     std::string message;
     std::string key;
 
-    std::cout << "Votre message > ";
+    std::cout << "Your message > ";
     getline(std::cin, message);
 
-    std::cout << "Votre cle > ";
+    std::cout << "Your key > ";
     getline(std::cin, key);
 
-    if(key.size() == 0)     { std::cout << "Clé de longueur 0, abandon"; return; }
+    if(key.size() == 0)     { std::cout << "Key's length is 0, quitting"; return; }
 
     std::string result = vigenereDecode(message, key);
 
@@ -112,7 +112,7 @@ std::string vigenereCode(std::string message, std::string key) {
         std::string alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ";
         for(unsigned int i = 0; i < message.size(); i++) {
             if((placeOfChar = alphabet.find(message[i])) == std::string::npos)  { return "Error, characters are not part of the following string : " + alphabet; }
-            codedChar = (placeOfChar + key[counterKey])%53;
+            codedChar = (placeOfChar + key[counterKey]%53)%53;
             codedString += alphabet[codedChar];
             ++counterKey%=sizeOfKey;
         }
@@ -123,6 +123,7 @@ std::string vigenereCode(std::string message, std::string key) {
             ++counterKey%=sizeOfKey;
         }
     }
+    writeToResultTxt(codedString);
     return codedString;
 }
 
@@ -135,9 +136,9 @@ std::string vigenereDecode(std::string message, std::string key) {
         std::string alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ";
         for(unsigned int i = 0; i < message.size(); i++) {
             if((placeOfChar = alphabet.find(message[i])) == std::string::npos)  { return "Error, characters are not part of the following string : " + alphabet; }
-            decodedChar = (placeOfChar - alphabet[key[counterKey]]);
+            decodedChar = (placeOfChar - (key[counterKey]%53));
             std::cout<< "1: " << (int)decodedChar << std::endl;
-            if(decodedChar < 0)   { decodedChar+=52; }
+            if(decodedChar < 0)   { decodedChar+=53; }
             std::cout<< "2: " << (int)decodedChar << std::endl;
             decodedString += alphabet[decodedChar];
             ++counterKey%=sizeOfKey;
@@ -150,6 +151,7 @@ std::string vigenereDecode(std::string message, std::string key) {
             ++counterKey%=sizeOfKey;
         }
     }
+    writeToResultTxt(decodedString);
     return decodedString;
 }
 
@@ -165,8 +167,16 @@ int openFile(std::string name, std::string& data) {
     else {
         while(getline(file, temp)) {
             data += temp;
-            data += '\n';
         }
         return 0;
     }
+}
+
+/// Write the string in the file result.txt ///
+int writeToResultTxt(std::string& str) {
+    std::ofstream ofs;
+    ofs.open("result.txt", std::ofstream::out | std::ofstream::trunc);
+    ofs << str;
+    ofs.close();
+    return 0;
 }
